@@ -8,8 +8,8 @@ vectors, time is a float delta — nothing here knows what a frame, a scene, or 
 
 ## Status
 
-**v0.0.1.** Being built test-first, and **every subject here is currently a stub**. `dotnet test`
-reports 52 failures and 0 passes, and that is the intended state, not a broken build.
+**v0.0.2.** Being built test-first, and **every subject here is currently a stub**. `dotnet test`
+reports 63 failures and 0 passes, and that is the intended state, not a broken build.
 
 **CI is red by design.** It runs that same suite, so the badge stays red until the last contract
 lands. Read a run's log instead — it names which contracts are still unmet, and that list shortens
@@ -23,6 +23,7 @@ project can depend on, and it lands when the last contract goes green.
 | `HitPlane` | The 3D→2D reduction everything else is built on. | 🔴 stub |
 | `AreaHits.InBeam` | Targets inside a beam, ordered near to far. | 🔴 stub |
 | `AreaHits.InCircle` | Targets inside a circle — the splash counterpart to `InBeam`. | 🔴 stub |
+| `AreaHits.InRect` | Targets inside an axis-aligned rectangle — an area that is a place rather than a reach. | 🔴 stub |
 | `FiringCadence` | Shot interval, burst pattern, and the aim tolerance a weapon may fire within. | 🔴 stub |
 
 The failing tests are the specification. A contract settled by writing the implementation is a
@@ -95,9 +96,9 @@ Worth knowing:
   `halfWidth` as well as a zero `length` — a beam with no width has no more area than one with no
   length, so a target dead on its axis is not hit either.
 - **An invalid area throws** `ArgumentOutOfRangeException`: a negative `length`, `halfWidth` or
-  `radius`, or a zero-length `direction`. Zero size is a defined answer, but these are not answers at
-  all, and quietly selecting nothing for them would hide the mistake behind a beam that never
-  connects — the hardest kind of aiming bug to trace back to its cause.
+  `radius`, a zero-length `direction`, or an inside-out rectangle. Zero size is a defined answer, but
+  these are not answers at all, and quietly selecting nothing for them would hide the mistake behind a
+  beam that never connects — the hardest kind of aiming bug to trace back to its cause.
 - **Targets are points.** A target's own radius is not modelled, so an area is no larger against a
   big target than a small one. Size is the area's property alone.
 - **Nothing is occluded.** A target behind a wall but inside the area is inside the area, and comes
@@ -106,6 +107,20 @@ Worth knowing:
 - **`direction` need not be unit length** — it is normalised internally.
 - **Ordering is total, not just sorted.** Targets at equal distance come back in candidate order
   every time, so a seeded run reproduces itself exactly.
+
+### Rectangles
+
+`InRect` is the shape that is a *place* rather than a reach — a room, a zone, a blast bay. It takes
+two opposite corners rather than a corner and a size, and it measures from the rectangle's **centre**,
+so "nearest first" means nearest to the middle of the area and not to whichever corner it was handed.
+Beyond the family rules above:
+
+- **Both axes at once.** Inside on one and outside on the other is outside. An "or" here would take in
+  the whole cross through the rectangle.
+- **A degenerate rectangle hits nothing**, the same rule as the beam's zero `halfWidth`: a rect flat on
+  one axis is a line, and a line has no area to be inside of.
+- **Grid conventions are the caller's.** Code holding a half-open grid rect owns the conversion to
+  inclusive corners; this knows only about the flat plane it is given.
 
 ### Cover and line of sight
 

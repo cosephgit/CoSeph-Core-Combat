@@ -76,5 +76,31 @@ namespace CoSeph.Core.Combat
         {
             throw new NotImplementedException();
         }
+
+        /// <summary>
+        /// Every candidate inside an axis-aligned rectangle, ordered from nearest to furthest from its
+        /// centre. The room counterpart to <see cref="InCircle"/> - a shape that is a place rather than
+        /// a reach - and it shares the same rules: the edge is inclusive, an area of no size hits
+        /// nothing, and equal distances resolve in candidate order.
+        ///
+        /// <paramref name="min"/> and <paramref name="max"/> are opposite corners, not a corner and a
+        /// size. A caller holding a grid rect owns the conversion, including whichever of its own
+        /// half-open conventions applies - this knows only about the flat plane it is given.
+        /// </summary>
+        /// <param name="min">The lower corner on both axes, inclusive.</param>
+        /// <param name="max">The upper corner on both axes, inclusive.</param>
+        /// <param name="positionOf">Reads one candidate's flat position.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="max"/> below <paramref name="min"/> on either axis. Zero size is a defined
+        /// answer; an inside-out rectangle is not an answer at all.
+        /// </exception>
+        public static List<AreaHit<T>> InRect<T>(
+            Vector2 min,
+            Vector2 max,
+            IReadOnlyList<T> candidates,
+            Func<T, Vector2> positionOf)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

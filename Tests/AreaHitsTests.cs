@@ -242,5 +242,121 @@ namespace CoSeph.Core.Combat.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => AreaHits.InCircle(
                 Vector2.Zero, -2f, new[] { new Vector2(1f, 0f) }, p => p));
         }
+
+        // ---- InRect ----
+
+        private static readonly Vector2 RectMin = new(-2f, -1f);
+        private static readonly Vector2 RectMax = new(2f, 1f);
+
+        private static List<AreaHit<Vector2>> InRect(params Vector2[] candidates)
+        {
+            return AreaHits.InRect(RectMin, RectMax, candidates, p => p);
+        }
+
+        [Fact]
+        public void InRect_TargetInside_HitAndOutsideNot()
+        {
+            List<AreaHit<Vector2>> hits = InRect(new Vector2(1f, 0.5f), new Vector2(3f, 0.5f));
+
+            Assert.Single(hits);
+            Assert.Equal(new Vector2(1f, 0.5f), hits[0].Target);
+        }
+
+        [Fact]
+        public void InRect_TargetOutsideOnOneAxisOnly_NotHit()
+        {
+            // inside on x and outside on y is outside. A rectangle is both bounds at once, and an
+            // "or" here would take in the whole cross through it
+            Assert.Empty(InRect(new Vector2(0f, 2f)));
+        }
+
+        [Fact]
+        public void InRect_TargetExactlyOnAnEdge_Hit()
+        {
+            // the edge is inclusive, as it is for the beam's far end and the circle's radius: a body
+            // standing against a room's wall is in that room
+            Assert.Single(InRect(new Vector2(RectMax.X, 0f)));
+            Assert.Single(InRect(new Vector2(0f, RectMin.Y)));
+        }
+
+        [Fact]
+        public void InRect_TargetExactlyOnACorner_Hit()
+        {
+            Assert.Single(InRect(RectMin));
+            Assert.Single(InRect(RectMax));
+        }
+
+        [Fact]
+        public void InRect_TargetJustOutsideAnEdge_NotHit()
+        {
+            Assert.Empty(InRect(new Vector2(RectMax.X + 0.0001f, 0f)));
+        }
+
+        [Fact]
+        public void InRect_Targets_OrderedNearToFarFromCentre()
+        {
+            // the centre of this rect is the origin, so the ordering is by plain distance from it
+            Vector2[] candidates = { new(2f, 0f), new(0.5f, 0f), new(1f, 0f) };
+
+            List<AreaHit<Vector2>> hits = AreaHits.InRect(RectMin, RectMax, candidates, p => p);
+
+            Assert.Equal(new[] { candidates[1], candidates[2], candidates[0] },
+                hits.ConvertAll(hit => hit.Target));
+        }
+
+        [Fact]
+        public void InRect_TargetsAtEqualDistance_OrderedByCandidateIndex()
+        {
+            // the same total ordering the beam has, and for the same reason: a seeded run has to
+            // reproduce itself when whatever consumes the list runs out partway down it
+            Vector2[] abreast = { new(0f, 0.5f), new(0f, -0.5f) };
+
+            List<AreaHit<Vector2>> hits = AreaHits.InRect(RectMin, RectMax, abreast, p => p);
+
+            Assert.Equal(abreast[0], hits[0].Target);
+            Assert.Equal(abreast[1], hits[1].Target);
+        }
+
+        [Fact]
+        public void InRect_DistanceIsFromTheCentre_NotFromTheCorner()
+        {
+            // stated because a rect is given by its corners, so measuring from one of them is the
+            // easy mistake - and a consumer that spends on nearest-first would spend it in a corner
+            List<AreaHit<Vector2>> hits = AreaHits.InRect(
+                new Vector2(0f, 0f), new Vector2(4f, 4f),
+                new[] { new Vector2(2f, 2f) },
+                p => p);
+
+            Assert.Single(hits);
+            Assert.Equal(0f, hits[0].Distance);
+        }
+
+        [Fact]
+        public void InRect_ZeroSizeOnOneAxis_HitsNothing()
+        {
+            // no size means no hit, the beam's zero half-width rule: a degenerate rect is a line, and
+            // a line has no area to be inside of
+            Assert.Empty(AreaHits.InRect(
+                new Vector2(-2f, 0f), new Vector2(2f, 0f),
+                new[] { new Vector2(0f, 0f) },
+                p => p));
+        }
+
+        [Fact]
+        public void InRect_EmptyCandidates_ReturnsEmpty()
+        {
+            Assert.Empty(AreaHits.InRect(RectMin, RectMax, new Vector2[0], p => p));
+        }
+
+        [Fact]
+        public void InRect_MaxBelowMin_Throws()
+        {
+            // an inside-out rect is a caller's arithmetic slip, and selecting nothing for it would
+            // hide that behind a room that never vents
+            Assert.Throws<ArgumentOutOfRangeException>(() => AreaHits.InRect(
+                new Vector2(2f, -1f), new Vector2(-2f, 1f),
+                new[] { new Vector2(0f, 0f) },
+                p => p));
+        }
     }
 }
