@@ -1,0 +1,36 @@
+name: CoSeph.Core.Combat CI
+
+# CoSeph.Core.Combat depends on nothing but the .NET SDK, so this needs no
+# cross-repo checkout and can run on every push.
+#
+# This runs RED on purpose: every subject here is a stub and the suite was written
+# first. The log names which contracts are still unmet, and that count is the
+# progress signal until the last one goes green.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  tests:
+    name: CoSeph.Core.Combat
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run CoSeph.Core.Combat tests
+        run: dotnet test Tests/CoSeph.Core.Combat.Tests.csproj --verbosity normal

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Test project for CoSeph.Core.Combat. Plain `dotnet test` with no engine or runtime beyond
+    .NET 8. Run with:
+        dotnet test Tests/CoSeph.Core.Combat.Tests.csproj
+
+    A consuming project that vendors these sources should keep this project out of its
+    own solution and compile glob, so its build never compiles the tests and running
+    them never drags in its toolchain.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>CoSeph.Core.Combat.Tests</RootNamespace>
+    <AssemblyName>CoSeph.Core.Combat.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <!-- Must match any consuming project that compiles the sources below alongside this one:
+         differing nullable settings would mean warnings in one and not the other. -->
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../*.cs" LinkBase="CoSeph.Core.Combat" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
