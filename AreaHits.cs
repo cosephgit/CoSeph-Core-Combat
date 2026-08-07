@@ -110,7 +110,26 @@ namespace CoSeph.Core.Combat
             IReadOnlyList<T> candidates,
             Func<T, Vector2> positionOf)
         {
-            throw new NotImplementedException();
+            if (radius < 0f)
+                throw new ArgumentOutOfRangeException(nameof(radius), radius, "A circle cannot be smaller than nothing.");
+
+            List<AreaHit<T>> hits = new();
+
+            if (radius == 0f)
+                return hits;
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                // the distance is the hit's own answer as well as the test, so there is nothing to
+                // save by comparing squares here
+                float distance = (positionOf(candidates[i]) - centre).Length();
+                if (distance > radius)
+                    continue;
+
+                hits.Add(new AreaHit<T>(candidates[i], distance));
+            }
+
+            return SortedNearestFirst(hits);
         }
 
         /// <summary>
