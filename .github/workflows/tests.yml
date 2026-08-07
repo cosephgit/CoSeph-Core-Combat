@@ -3,14 +3,14 @@ name: CoSeph.Core.Combat CI
 # CoSeph.Core.Combat depends on nothing but the .NET SDK, so this needs no
 # cross-repo checkout and can run on every push.
 #
-# This runs RED on purpose: every subject here is a stub and the suite was written
-# first. The log names which contracts are still unmet, and that count is the
-# progress signal until the last one goes green.
+# Work arrives on `testing` and reaches `main` only by passing this suite, so a
+# commit on `main` is one the tests have run green. A red run leaves `main`
+# exactly where it was.
 on:
   push:
-    branches: [ main ]
+    branches: [ testing ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, testing ]
 
   workflow_dispatch:
 
@@ -34,3 +34,30 @@ jobs:
 
       - name: Run CoSeph.Core.Combat tests
         run: dotnet test Tests/CoSeph.Core.Combat.Tests.csproj --verbosity normal
+
+  promote:
+    name: Promote to main
+
+    needs: tests
+    # a green suite is the only thing that moves main, and only from a real push -
+    # a pull_request run tests a merge commit that does not exist on either branch
+    if: github.event_name == 'push' && github.ref == 'refs/heads/testing'
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+
+      # full history: a shallow clone cannot be pushed from
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # fast-forward only, since the two branches share one history - a push that
+      # is rejected means they have diverged, which wants a person rather than a
+      # retry. Pushing as GITHUB_TOKEN does not start another run, so this cannot
+      # loop back into itself
+      - name: Fast-forward main
+        run: git push origin HEAD:main

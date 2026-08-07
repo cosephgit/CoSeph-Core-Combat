@@ -6,40 +6,17 @@ firing-cadence rules that decide when a weapon may shoot at all.
 Plain .NET 8, no third-party dependencies and no game engine. Positions are `System.Numerics`
 vectors, time is a float delta — nothing here knows what a frame, a scene, or a physics world is.
 
-## Status
+## What is in it
 
-**v0.0.9.** Built test-first, and every contract is now green: `dotnet test` reports 63 passes and
-no failures.
+**v0.0.9.** Every contract listed here is implemented, and has a test asserting it.
 
-The patch number moves with each step, so a reader can tell which contracts a given commit had
-green without counting back through the log.
-
-**CI was red by design until this version**, and its run history is worth more than the badge: each
-failing run names exactly which contracts were still unmet, and that list shortens commit by commit
-until it empties.
-
-Nothing is tagged yet, and nothing here should be pinned. `v1.0.0` is the first release a consuming
-project can depend on, and it lands when the last contract goes green.
-
-| Type | Purpose | Status |
-| --- | --- | --- |
-| `HitPlane` | The 3D→2D reduction everything else is built on. | 🟢 done |
-| `AreaHits.InBeam` | Targets inside a beam, ordered near to far. | 🟢 done |
-| `AreaHits.InCircle` | Targets inside a circle — the splash counterpart to `InBeam`. | 🟢 done |
-| `AreaHits.InRect` | Targets inside an axis-aligned rectangle — an area that is a place rather than a reach. | 🟢 done |
-| `FiringCadence` | Shot interval, burst pattern, and the aim tolerance a weapon may fire within. | 🟢 done |
-
-The tests were the specification. A contract settled by writing the implementation is a contract
-nobody got to argue with — and the decisions here are exactly the arguable kind: which boundaries
-are inclusive, what a frame hitch costs, whether an abandoned burst still pays its pause. Each was
-implemented as its own deliberate step, once its contract was agreed.
-
-## Following along
-
-The history is the artefact. Every test was written before any implementation existed, and each
-commit takes exactly one contract green, so the failure count falls a step at a time rather than in
-one jump. Start at the first commit and read forwards — the status table above moves with each one,
-and the commit messages carry the reasoning behind the decision that step settled.
+| Type | Purpose |
+| --- | --- |
+| `HitPlane` | The 3D→2D reduction everything else is built on. |
+| `AreaHits.InBeam` | Targets inside a beam, ordered near to far. |
+| `AreaHits.InCircle` | Targets inside a circle — the splash counterpart to `InBeam`. |
+| `AreaHits.InRect` | Targets inside an axis-aligned rectangle — an area that is a place rather than a reach. |
+| `FiringCadence` | Shot interval, burst pattern, and the aim tolerance a weapon may fire within. |
 
 ## The idea
 
@@ -53,14 +30,16 @@ all. That last property is the one that matters most: it puts hit resolution ins
 simulation instead of downstream of a physics server, so a headless or training run resolves fights
 the same way the game does.
 
-**The limit, stated rather than left to be discovered:** a game with genuine verticality in its
-combat — flying units, shootable ledges, cover shorter than a target — is outside what this models,
-and no tuning fixes it. Use the physics server there.
+**The limit:** a game with genuine verticality in its combat — flying units, shootable ledges, cover
+shorter than a target — is outside what this models, and no tuning fixes it. Use the physics server
+there.
 
 ## Installing
 
 Source drop-in. Copy the `.cs` files into your project, or vendor the repo with
 `git subtree`/`git submodule`. Everything is in the `CoSeph.Core.Combat` namespace.
+
+Take `main` or a tag: `main` moves only when the test suite passes. `testing` is not stable.
 
 ## AreaHits
 
