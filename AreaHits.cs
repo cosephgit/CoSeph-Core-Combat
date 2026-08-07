@@ -58,7 +58,43 @@ namespace CoSeph.Core.Combat
             IReadOnlyList<T> candidates,
             Func<T, Vector2> positionOf)
         {
-            throw new NotImplementedException();
+            if (length < 0f)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "A beam cannot be shorter than nothing.");
+            if (halfWidth < 0f)
+                throw new ArgumentOutOfRangeException(nameof(halfWidth), halfWidth, "A beam cannot be narrower than nothing.");
+
+            // squared length, so a direction too small to normalise is caught alongside an outright
+            // zero one - and written as !(> 0) so a NaN facing throws rather than missing everything
+            float directionLengthSq = direction.LengthSquared();
+            if (!(directionLengthSq > 0f))
+                throw new ArgumentOutOfRangeException(nameof(direction), direction, "A beam needs a direction to point in.");
+
+            List<AreaHit<T>> hits = new();
+
+            // no area means no hit, so neither dimension can be zero - checked before the loop
+            // because a target on the origin would otherwise pass every comparison below
+            if (length == 0f || halfWidth == 0f)
+                return hits;
+
+            Vector2 axis = direction / MathF.Sqrt(directionLengthSq);
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                Vector2 offset = positionOf(candidates[i]) - origin;
+                float along = Vector2.Dot(offset, axis);
+                if (along < 0f || along > length)
+                    continue;
+
+                // cross product against a unit axis is the signed distance off it, without building
+                // a perpendicular vector to project onto
+                float across = (offset.X * axis.Y) - (offset.Y * axis.X);
+                if (MathF.Abs(across) > halfWidth)
+                    continue;
+
+                hits.Add(new AreaHit<T>(candidates[i], along));
+            }
+
+            return hits;
         }
 
         /// <summary>
