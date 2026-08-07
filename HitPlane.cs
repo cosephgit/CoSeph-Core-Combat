@@ -25,12 +25,17 @@ namespace CoSeph.Core.Combat
     /// </summary>
     public static class HitPlane
     {
+        private const string UNKNOWN_PLANE = "Not a known ground plane.";
+
         /// <summary>Drops the up axis, giving the 2D position every area test works in.</summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="plane"/> is outside the enum.</exception>
-        public static Vector2 Flatten(Vector3 point, GroundPlane plane)
+        public static Vector2 Flatten(Vector3 point, GroundPlane plane) => plane switch
         {
-            throw new NotImplementedException();
-        }
+            GroundPlane.Xz => new Vector2(point.X, point.Z),
+            GroundPlane.Xy => new Vector2(point.X, point.Y),
+            GroundPlane.Yz => new Vector2(point.Y, point.Z),
+            _ => throw new ArgumentOutOfRangeException(nameof(plane), plane, UNKNOWN_PLANE),
+        };
 
         /// <summary>
         /// Puts a flattened position back into 3D at a chosen height, for drawing a result that was
@@ -40,16 +45,22 @@ namespace CoSeph.Core.Combat
         /// <paramref name="plane"/> is outside the enum. Guarded in its own right: the drawing path
         /// reaches this without necessarily having passed through <see cref="Flatten"/> first.
         /// </exception>
-        public static Vector3 Restore(Vector2 flat, float height, GroundPlane plane)
+        public static Vector3 Restore(Vector2 flat, float height, GroundPlane plane) => plane switch
         {
-            throw new NotImplementedException();
-        }
+            GroundPlane.Xz => new Vector3(flat.X, height, flat.Y),
+            GroundPlane.Xy => new Vector3(flat.X, flat.Y, height),
+            GroundPlane.Yz => new Vector3(height, flat.X, flat.Y),
+            _ => throw new ArgumentOutOfRangeException(nameof(plane), plane, UNKNOWN_PLANE),
+        };
 
         /// <summary>The height that <see cref="Flatten"/> discarded.</summary>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="plane"/> is outside the enum.</exception>
-        public static float HeightOf(Vector3 point, GroundPlane plane)
+        public static float HeightOf(Vector3 point, GroundPlane plane) => plane switch
         {
-            throw new NotImplementedException();
-        }
+            GroundPlane.Xz => point.Y,
+            GroundPlane.Xy => point.Z,
+            GroundPlane.Yz => point.X,
+            _ => throw new ArgumentOutOfRangeException(nameof(plane), plane, UNKNOWN_PLANE),
+        };
     }
 }

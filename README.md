@@ -8,8 +8,8 @@ vectors, time is a float delta — nothing here knows what a frame, a scene, or 
 
 ## Status
 
-**v0.0.2.** Being built test-first, and **every subject here is currently a stub**. `dotnet test`
-reports 63 failures and 0 passes, and that is the intended state, not a broken build.
+**v0.0.2.** Being built test-first, and **most subjects here are still stubs**. `dotnet test`
+reports 53 failures and 10 passes, and that is the intended state, not a broken build.
 
 **CI is red by design.** It runs that same suite, so the badge stays red until the last contract
 lands. Read a run's log instead — it names which contracts are still unmet, and that list shortens
@@ -20,7 +20,7 @@ project can depend on, and it lands when the last contract goes green.
 
 | Type | Purpose | Status |
 | --- | --- | --- |
-| `HitPlane` | The 3D→2D reduction everything else is built on. | 🔴 stub |
+| `HitPlane` | The 3D→2D reduction everything else is built on. | 🟢 done |
 | `AreaHits.InBeam` | Targets inside a beam, ordered near to far. | 🔴 stub |
 | `AreaHits.InCircle` | Targets inside a circle — the splash counterpart to `InBeam`. | 🔴 stub |
 | `AreaHits.InRect` | Targets inside an axis-aligned rectangle — an area that is a place rather than a reach. | 🔴 stub |
@@ -31,7 +31,7 @@ contract nobody got to argue with — and the decisions here are exactly the arg
 boundaries are inclusive, what a frame hitch costs, whether an abandoned burst still pays its pause.
 Each is implemented as its own deliberate step, once its contract is agreed.
 
-Everything described below is therefore a **specified** contract rather than a shipped one.
+Everything below still marked 🔴 is therefore a **specified** contract rather than a shipped one.
 
 ## Following along
 
