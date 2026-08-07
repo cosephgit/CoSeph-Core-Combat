@@ -8,17 +8,15 @@ vectors, time is a float delta — nothing here knows what a frame, a scene, or 
 
 ## Status
 
-**v0.0.8.** Being built test-first. `AreaHits` and `HitPlane` are complete, and every shot
-`FiringCadence` fires now lands when it should — interval and bursts alike; **the lit and released
-edges around them are still stubs**. `dotnet test` reports 7 failures and 56 passes, and that is the
-intended state, not a broken build.
+**v0.0.9.** Built test-first, and every contract is now green: `dotnet test` reports 63 passes and
+no failures.
 
 The patch number moves with each step, so a reader can tell which contracts a given commit had
 green without counting back through the log.
 
-**CI is red by design.** It runs that same suite, so the badge stays red until the last contract
-lands. Read a run's log instead — it names which contracts are still unmet, and that list shortens
-with each commit.
+**CI was red by design until this version**, and its run history is worth more than the badge: each
+failing run names exactly which contracts were still unmet, and that list shortens commit by commit
+until it empties.
 
 Nothing is tagged yet, and nothing here should be pinned. `v1.0.0` is the first release a consuming
 project can depend on, and it lands when the last contract goes green.
@@ -29,14 +27,12 @@ project can depend on, and it lands when the last contract goes green.
 | `AreaHits.InBeam` | Targets inside a beam, ordered near to far. | 🟢 done |
 | `AreaHits.InCircle` | Targets inside a circle — the splash counterpart to `InBeam`. | 🟢 done |
 | `AreaHits.InRect` | Targets inside an axis-aligned rectangle — an area that is a place rather than a reach. | 🟢 done |
-| `FiringCadence` | Shot interval, burst pattern, and the aim tolerance a weapon may fire within. | 🟡 shot timing done; lit/released edges still red |
+| `FiringCadence` | Shot interval, burst pattern, and the aim tolerance a weapon may fire within. | 🟢 done |
 
-The failing tests are the specification. A contract settled by writing the implementation is a
-contract nobody got to argue with — and the decisions here are exactly the arguable kind: which
-boundaries are inclusive, what a frame hitch costs, whether an abandoned burst still pays its pause.
-Each is implemented as its own deliberate step, once its contract is agreed.
-
-Everything below still marked 🔴 is therefore a **specified** contract rather than a shipped one.
+The tests were the specification. A contract settled by writing the implementation is a contract
+nobody got to argue with — and the decisions here are exactly the arguable kind: which boundaries
+are inclusive, what a frame hitch costs, whether an abandoned burst still pays its pause. Each was
+implemented as its own deliberate step, once its contract was agreed.
 
 ## Following along
 

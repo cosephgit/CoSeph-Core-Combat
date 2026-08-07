@@ -43,6 +43,7 @@ namespace CoSeph.Core.Combat
         private float _sinceApplication;
         /// <summary>Applications since the current burst began. Unused where no burst is configured.</summary>
         private int _shotsThisBurst;
+        private bool _isLit;
 
         /// <param name="burstSize">Shots per burst. At or below zero the weapon fires continuously.</param>
         /// <param name="burstDelay">The pause after a completed burst. Replaces the inter-shot gap
@@ -62,7 +63,7 @@ namespace CoSeph.Core.Combat
         }
 
         /// <summary>The weapon is mid-fire: a sustained beam is up, or a burst is under way.</summary>
-        public bool IsLit => throw new NotImplementedException();
+        public bool IsLit => _isLit;
 
         /// <summary>
         /// Advances the cadence by one tick and reports whether damage applies on it.
@@ -83,7 +84,9 @@ namespace CoSeph.Core.Combat
                 // shooting is already the pause that delay exists to create, so charging it again on
                 // re-acquisition would penalise the weapon twice for a target that stepped behind cover
                 _shotsThisBurst = 0;
-                return new CadenceStep(false, false, false);
+                // losing the target is one of the routes that stops a weapon firing, so it answers
+                // through the same call the others do rather than clearing the flag itself
+                return new CadenceStep(false, false, Release());
             }
 
             _sinceApplication += delta;
@@ -106,7 +109,21 @@ namespace CoSeph.Core.Combat
             // reset rather than subtract the gap: a long delta applies once and the rest of it is
             // discarded, so a frame hitch costs a shot instead of banking a catch-up one
             _sinceApplication = 0f;
-            return new CadenceStep(true, false, false);
+
+            // an edge, not a level: raised by the application that opens a burst and not again until
+            // the next one, so a looping sound started on it does not restart per shot
+            bool lit = !_isLit;
+            _isLit = true;
+
+            // a burst bounds a lit beam the way a magazine bounds a bullet turret's fire, so the shot
+            // that completes one also puts it out - on the same tick it lit, where the burst is a
+            // single shot. With no burst configured there is nothing to complete, and only losing the
+            // target ends it
+            bool released = false;
+            if (_burstSize > 0 && _shotsThisBurst >= _burstSize)
+                released = Release();
+
+            return new CadenceStep(true, lit, released);
         }
 
         /// <summary>
@@ -116,7 +133,13 @@ namespace CoSeph.Core.Combat
         /// </summary>
         public bool Release()
         {
-            throw new NotImplementedException();
+            // the whole of the idempotence: a weapon already dark has nothing to stop, so the second
+            // of two racing routes gets false and the effect it would have ended stays ended once
+            if (!_isLit)
+                return false;
+
+            _isLit = false;
+            return true;
         }
 
         /// <summary>
