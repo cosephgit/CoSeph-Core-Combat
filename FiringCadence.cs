@@ -77,7 +77,11 @@ namespace CoSeph.Core.Combat
         /// </summary>
         public static float ToleranceFor(float halfWidth, float distance)
         {
-            throw new NotImplementedException();
+            // the half-angle of the right triangle whose opposite side is the weapon's half-width and
+            // whose adjacent side is the range. Atan2 rather than Atan of a ratio so a target standing
+            // on the weapon divides by nothing and answers a quarter turn, which is the honest reading
+            // of it: at no distance at all, no aim is far enough off to miss by
+            return MathF.Atan2(halfWidth, distance);
         }
 
         /// <summary>
@@ -86,7 +90,10 @@ namespace CoSeph.Core.Combat
         /// </summary>
         public static bool PermitsFire(float residualAngle, float tolerance)
         {
-            throw new NotImplementedException();
+            // the residual's sign is which way the aim is off, never how far, so it is discarded
+            // before the comparison. Inclusive, matching the hit tests: a target exactly on an area's
+            // edge is hit, so an aim exactly on the tolerance may take the shot that hits it
+            return MathF.Abs(residualAngle) <= tolerance;
         }
     }
 }
