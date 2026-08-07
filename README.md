@@ -8,7 +8,7 @@ vectors, time is a float delta — nothing here knows what a frame, a scene, or 
 
 ## What is in it
 
-**v0.0.9.** Every contract listed here is implemented, and has a test asserting it.
+**v1.0.0.** Every contract listed here is implemented, and has a test asserting it.
 
 | Type | Purpose |
 | --- | --- |
