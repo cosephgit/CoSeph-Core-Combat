@@ -37,8 +37,12 @@ namespace CoSeph.Core.Combat
     public sealed class FiringCadence
     {
         private readonly float _fireInterval;
+        private readonly int _burstSize;
+        private readonly float _burstDelay;
         /// <summary>Time since the last application, or since the weapon last had a target.</summary>
         private float _sinceApplication;
+        /// <summary>Applications since the current burst began. Unused where no burst is configured.</summary>
+        private int _shotsThisBurst;
 
         /// <param name="burstSize">Shots per burst. At or below zero the weapon fires continuously.</param>
         /// <param name="burstDelay">The pause after a completed burst. Replaces the inter-shot gap
@@ -53,6 +57,8 @@ namespace CoSeph.Core.Combat
                     "A weapon with no interval between its shots fires at the tick rate.");
 
             _fireInterval = fireInterval;
+            _burstSize = burstSize;
+            _burstDelay = burstDelay;
         }
 
         /// <summary>The weapon is mid-fire: a sustained beam is up, or a burst is under way.</summary>
@@ -73,15 +79,31 @@ namespace CoSeph.Core.Combat
                 // clock at zero is what makes re-acquisition cost the same first interval a newly built
                 // weapon pays, rather than letting time spent dark buy a shot the moment a target walks in
                 _sinceApplication = 0f;
+                // the burst is abandoned rather than suspended, and its delay is not charged: not
+                // shooting is already the pause that delay exists to create, so charging it again on
+                // re-acquisition would penalise the weapon twice for a target that stepped behind cover
+                _shotsThisBurst = 0;
                 return new CadenceStep(false, false, false);
             }
 
             _sinceApplication += delta;
 
-            if (_sinceApplication < _fireInterval)
+            bool burstComplete = _burstSize > 0 && _shotsThisBurst >= _burstSize;
+
+            // the burst's pause replaces the inter-shot gap rather than adding to it, which is what
+            // makes a delay shorter than the interval change nothing and a delay of zero fire like a
+            // weapon with no burst at all
+            float gap = burstComplete ? MathF.Max(_fireInterval, _burstDelay) : _fireInterval;
+
+            if (_sinceApplication < gap)
                 return new CadenceStep(false, false, false);
 
-            // reset rather than subtract the interval: a long delta applies once and the rest of it is
+            // the pause has been served, so this application opens a fresh burst
+            if (burstComplete)
+                _shotsThisBurst = 0;
+
+            _shotsThisBurst++;
+            // reset rather than subtract the gap: a long delta applies once and the rest of it is
             // discarded, so a frame hitch costs a shot instead of banking a catch-up one
             _sinceApplication = 0f;
             return new CadenceStep(true, false, false);

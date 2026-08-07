@@ -8,9 +8,10 @@ vectors, time is a float delta — nothing here knows what a frame, a scene, or 
 
 ## Status
 
-**v0.0.7.** Being built test-first. `AreaHits` and `HitPlane` are complete, and `FiringCadence` now
-applies on its interval; **its bursts and its lit/released edges are still stubs**. `dotnet test`
-reports 8 failures and 55 passes, and that is the intended state, not a broken build.
+**v0.0.8.** Being built test-first. `AreaHits` and `HitPlane` are complete, and every shot
+`FiringCadence` fires now lands when it should — interval and bursts alike; **the lit and released
+edges around them are still stubs**. `dotnet test` reports 7 failures and 56 passes, and that is the
+intended state, not a broken build.
 
 The patch number moves with each step, so a reader can tell which contracts a given commit had
 green without counting back through the log.
@@ -28,7 +29,7 @@ project can depend on, and it lands when the last contract goes green.
 | `AreaHits.InBeam` | Targets inside a beam, ordered near to far. | 🟢 done |
 | `AreaHits.InCircle` | Targets inside a circle — the splash counterpart to `InBeam`. | 🟢 done |
 | `AreaHits.InRect` | Targets inside an axis-aligned rectangle — an area that is a place rather than a reach. | 🟢 done |
-| `FiringCadence` | Shot interval, burst pattern, and the aim tolerance a weapon may fire within. | 🟡 gate and interval done; bursts and edges still red |
+| `FiringCadence` | Shot interval, burst pattern, and the aim tolerance a weapon may fire within. | 🟡 shot timing done; lit/released edges still red |
 
 The failing tests are the specification. A contract settled by writing the implementation is a
 contract nobody got to argue with — and the decisions here are exactly the arguable kind: which
