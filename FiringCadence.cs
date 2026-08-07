@@ -36,6 +36,10 @@ namespace CoSeph.Core.Combat
     /// </summary>
     public sealed class FiringCadence
     {
+        private readonly float _fireInterval;
+        /// <summary>Time since the last application, or since the weapon last had a target.</summary>
+        private float _sinceApplication;
+
         /// <param name="burstSize">Shots per burst. At or below zero the weapon fires continuously.</param>
         /// <param name="burstDelay">The pause after a completed burst. Replaces the inter-shot gap
         /// rather than adding to it, so a delay shorter than <paramref name="fireInterval"/> has no effect.</param>
@@ -44,6 +48,11 @@ namespace CoSeph.Core.Combat
         /// </exception>
         public FiringCadence(float fireInterval, int burstSize, float burstDelay)
         {
+            if (fireInterval <= 0f)
+                throw new ArgumentOutOfRangeException(nameof(fireInterval), fireInterval,
+                    "A weapon with no interval between its shots fires at the tick rate.");
+
+            _fireInterval = fireInterval;
         }
 
         /// <summary>The weapon is mid-fire: a sustained beam is up, or a burst is under way.</summary>
@@ -58,7 +67,24 @@ namespace CoSeph.Core.Combat
         /// </summary>
         public CadenceStep Update(float delta, bool targetPresent)
         {
-            throw new NotImplementedException();
+            if (!targetPresent)
+            {
+                // a weapon with nothing to shoot at is not counting down to a shot either. Holding the
+                // clock at zero is what makes re-acquisition cost the same first interval a newly built
+                // weapon pays, rather than letting time spent dark buy a shot the moment a target walks in
+                _sinceApplication = 0f;
+                return new CadenceStep(false, false, false);
+            }
+
+            _sinceApplication += delta;
+
+            if (_sinceApplication < _fireInterval)
+                return new CadenceStep(false, false, false);
+
+            // reset rather than subtract the interval: a long delta applies once and the rest of it is
+            // discarded, so a frame hitch costs a shot instead of banking a catch-up one
+            _sinceApplication = 0f;
+            return new CadenceStep(true, false, false);
         }
 
         /// <summary>
