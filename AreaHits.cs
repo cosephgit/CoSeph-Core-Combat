@@ -94,7 +94,7 @@ namespace CoSeph.Core.Combat
                 hits.Add(new AreaHit<T>(candidates[i], along));
             }
 
-            return hits;
+            return SortedNearestFirst(hits);
         }
 
         /// <summary>
@@ -137,6 +137,35 @@ namespace CoSeph.Core.Combat
             Func<T, Vector2> positionOf)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Nearest first, with equal distances left in the order their candidates were given in.
+        ///
+        /// The tie-break is stated rather than borrowed from a stable sort. LINQ's <c>OrderBy</c> would
+        /// satisfy it and <see cref="List{T}.Sort"/> would not, so leaning on either makes a documented
+        /// contract depend on which one a later edit reaches for - and that edit compiles.
+        /// </summary>
+        private static List<AreaHit<T>> SortedNearestFirst<T>(List<AreaHit<T>> hits)
+        {
+            // hits were appended in candidate order, so a hit's position here is its candidate rank.
+            // Sorting the ranks rather than the hits is what keeps that rank readable during the
+            // comparison, which is the only place it is needed.
+            int[] ranks = new int[hits.Count];
+            for (int i = 0; i < ranks.Length; i++)
+                ranks[i] = i;
+
+            Array.Sort(ranks, (a, b) =>
+            {
+                int byDistance = hits[a].Distance.CompareTo(hits[b].Distance);
+                return byDistance != 0 ? byDistance : a.CompareTo(b);
+            });
+
+            List<AreaHit<T>> sorted = new(hits.Count);
+            for (int i = 0; i < ranks.Length; i++)
+                sorted.Add(hits[ranks[i]]);
+
+            return sorted;
         }
     }
 }

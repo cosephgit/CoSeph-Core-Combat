@@ -8,8 +8,11 @@ vectors, time is a float delta — nothing here knows what a frame, a scene, or 
 
 ## Status
 
-**v0.0.2.** Being built test-first, and **most subjects here are still stubs**. `dotnet test`
-reports 39 failures and 24 passes, and that is the intended state, not a broken build.
+**v0.0.3.** Being built test-first, and **most subjects here are still stubs**. `dotnet test`
+reports 38 failures and 25 passes, and that is the intended state, not a broken build.
+
+The patch number moves with each step, so a reader can tell which contracts a given commit had
+green without counting back through the log.
 
 **CI is red by design.** It runs that same suite, so the badge stays red until the last contract
 lands. Read a run's log instead — it names which contracts are still unmet, and that list shortens
@@ -21,7 +24,7 @@ project can depend on, and it lands when the last contract goes green.
 | Type | Purpose | Status |
 | --- | --- | --- |
 | `HitPlane` | The 3D→2D reduction everything else is built on. | 🟢 done |
-| `AreaHits.InBeam` | Targets inside a beam, ordered near to far. | 🟡 selects; ordering still red |
+| `AreaHits.InBeam` | Targets inside a beam, ordered near to far. | 🟢 done |
 | `AreaHits.InCircle` | Targets inside a circle — the splash counterpart to `InBeam`. | 🔴 stub |
 | `AreaHits.InRect` | Targets inside an axis-aligned rectangle — an area that is a place rather than a reach. | 🔴 stub |
 | `FiringCadence` | Shot interval, burst pattern, and the aim tolerance a weapon may fire within. | 🔴 stub |
