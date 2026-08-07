@@ -155,7 +155,31 @@ namespace CoSeph.Core.Combat
             IReadOnlyList<T> candidates,
             Func<T, Vector2> positionOf)
         {
-            throw new NotImplementedException();
+            if (max.X < min.X || max.Y < min.Y)
+                throw new ArgumentOutOfRangeException(nameof(max), max, "A rectangle's upper corner cannot sit below its lower one.");
+
+            List<AreaHit<T>> hits = new();
+
+            // flat on either axis is a line rather than a rectangle, so there is no inside to be in
+            if (max.X == min.X || max.Y == min.Y)
+                return hits;
+
+            // the corners are how the rectangle is given, not what it is measured from - nearest-first
+            // is only worth paying for if it means nearest to the middle of the area
+            Vector2 centre = (min + max) * 0.5f;
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                Vector2 position = positionOf(candidates[i]);
+
+                // both axes, never either: an "or" would take in the whole cross through the rectangle
+                if (position.X < min.X || position.X > max.X || position.Y < min.Y || position.Y > max.Y)
+                    continue;
+
+                hits.Add(new AreaHit<T>(candidates[i], (position - centre).Length()));
+            }
+
+            return SortedNearestFirst(hits);
         }
 
         /// <summary>
